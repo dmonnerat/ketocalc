@@ -1,0 +1,4 @@
+LookupIntent what is the exchange for {Item}
+LookupIntent what's the exchange for {Item}
+LookupIntent the exchange for {Item}
+

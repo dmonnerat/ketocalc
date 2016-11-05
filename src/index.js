@@ -15,14 +15,19 @@
  *
  * Examples:
  * One-shot model:
- *  User: "Alexa, ask Minecraft Helper how to make paper."
- *  Alexa: "(reads back recipe for paper)"
+ *  User: "Alexa, ask KetoCalc what is the exchange for cucumbers"
+ *  Alexa: "(reads back exchanges for cucumbers)"
+ */
+ 
+ /**
+ TODO: Handle plural/singular
+ TODO: Handle querying by some subset of words for items with multiple words, but make sure response explicitly shows what is returned.
  */
 
 'use strict';
 
 var AlexaSkill = require('./AlexaSkill'),
-    recipes = require('./recipes');
+    exchanges = require('./exchanges');
 
 var APP_ID = 'amzn1.echo-sdk-ams.app.6fe112b7-1942-4d63-8f68-1bd582604d7f'; //replace with 'amzn1.echo-sdk-ams.app.[your-unique-value-here]';
 
@@ -49,24 +54,43 @@ KetoCalculator.prototype.eventHandlers.onLaunch = function (launchRequest, sessi
 };
 
 KetoCalculator.prototype.intentHandlers = {
-    "RecipeIntent": function (intent, session, response) {
+    "LookupIntent": function (intent, session, response) {
         var itemSlot = intent.slots.Item,
             itemName;
         if (itemSlot && itemSlot.value){
             itemName = itemSlot.value.toLowerCase();
         }
 
-        var cardTitle = "Recipe for " + itemName,
-            recipe = recipes[itemName],
+        var cardTitle = "Exchange for " + itemName,
+            exchange = exchanges[itemName],
             speechOutput,
             repromptOutput;
-        if (recipe) {
+            
+        //let's check to see if we found it. if not, try again with singular, then plural
+        if (!exchange) {//exchange is empty
+        	if (itemName) { //itemName is not empty
+        		if (itemName.substr(-1) == "s") { //it's plural
+        			//try again without the trailing s
+        			exchange = exchanges[itemName.substr(0,itemName.length - 1)],
+						speechOutput,
+						repromptOutput;
+				}
+        		else //its singular, add an s
+        		{
+        			exchange = exchanges[itemName+"s"],
+						speechOutput,
+						repromptOutput;
+        		}
+        	}
+        }
+            
+        if (exchange) { //If the item was in the list
             speechOutput = {
-                speech: recipe,
+                speech: exchange,
                 type: AlexaSkill.speechOutputType.PLAIN_TEXT
             };
-            response.tellWithCard(speechOutput, cardTitle, recipe);
-        } else {
+            response.tellWithCard(speechOutput, cardTitle, exchange);
+        } else { //the item was not in the list
             var speech;
             if (itemName) {
                 speech = "I'm sorry, I currently do not know the exchange for " + itemName + ". What else can I help with?";
