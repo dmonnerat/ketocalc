@@ -29,10 +29,11 @@
 var AlexaSkill = require('./AlexaSkill'),
     exchanges = require('./exchanges');
 
-var natural = require('natural'),
-    stemmer = natural.LancasterStemmer;
+//var natural = require('natural'), stemmer = natural.LancasterStemmer;
+//console.log(stemmer.stem('chicken'));
 
-console.log(stemmer.stem('strawberries'));
+var pluralize = require('pluralize');
+//console.log(pluralize.singular('chicken'));
 
 var APP_ID = 'amzn1.echo-sdk-ams.app.6fe112b7-1942-4d63-8f68-1bd582604d7f'; //replace with 'amzn1.echo-sdk-ams.app.[your-unique-value-here]';
 
@@ -63,32 +64,15 @@ KetoCalculator.prototype.intentHandlers = {
         var itemSlot = intent.slots.Item,
             itemName;
         if (itemSlot && itemSlot.value){
-            itemName = itemSlot.value.toLowerCase();
+        	console.log("Item: " + pluralize.singular(itemSlot.value.toLowerCase()));
+            itemName = pluralize.singular(itemSlot.value.toLowerCase());
         }
 
         var cardTitle = "Exchange for " + itemName,
             exchange = exchanges[itemName],
             speechOutput,
             repromptOutput;
-            
-        //let's check to see if we found it. if not, try again with singular, then plural
-        if (!exchange) {//exchange is empty
-        	if (itemName) { //itemName is not empty
-        		if (itemName.substr(-1) == "s") { //it's plural
-        			//try again without the trailing s
-        			exchange = exchanges[itemName.substr(0,itemName.length - 1)],
-						speechOutput,
-						repromptOutput;
-				}
-        		else //its singular, add an s
-        		{
-        			exchange = exchanges[itemName+"s"],
-						speechOutput,
-						repromptOutput;
-        		}
-        	}
-        }
-            
+                        
         if (exchange) { //If the item was in the list
             speechOutput = {
                 speech: exchange,
